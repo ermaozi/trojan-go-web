@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-overlay :value="overlay">
+    <v-dialog v-model="overlay" max-width="500px">
       <v-card width="500px" flat class="pa-10">
         <v-card-title>
           添加节点
@@ -61,7 +61,8 @@
           </v-container>
         </v-form>
       </v-card>
-    </v-overlay>
+    </v-dialog>
+
     <v-progress-linear
       :active="loading"
       :indeterminate="loading"

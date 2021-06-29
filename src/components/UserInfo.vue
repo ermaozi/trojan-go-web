@@ -15,43 +15,34 @@
       </v-btn>
     </v-card-title>
     <v-data-table
+      item-key="username"
+      :loading="loadingdata"
+      loading-text="数据加载中..."
       :headers="headers"
       :items="desserts"
-      item-key="username"
       :search="search"
-      show-expand
     >
-      <template v-slot:expanded-item="{ headers, item }">
-        <td :colspan="headers.length">
-          <span v-for="node in item.nodes" :key="node.id">
-            <v-chip
-              label
-              color="primary"
-              outlined
-              close
-              class="ma-2"
-              close-icon="mdi-delete-outline"
-              @click:close="remove_node(item.username, node)"
-            >
-              {{ node }}
-            </v-chip>
-          </span>
-          <span>
-            <v-chip
-              class="ma-2"
-              color="success"
-              @click="
-                add_node = true;
-                add_node_to_user(item.username);
-              "
-            >
-              <v-avatar left>
-                <v-icon>mdi-plus-circle-outline</v-icon>
-              </v-avatar>
-              新增节点
-            </v-chip>
-          </span>
-        </td>
+      <template v-slot:item.actions="{ item }">
+        <v-icon
+          small
+          class="mr-2"
+          @click="
+            set_user_show = true;
+            set_user(item);
+          "
+        >
+          mdi-pencil
+        </v-icon>
+        <v-icon
+          small
+          @click="
+            del_user(item);
+            del_user_show = true;
+            valid = true;
+          "
+        >
+          mdi-delete
+        </v-icon>
       </template>
     </v-data-table>
     <v-dialog v-model="add_user" max-width="500px">
@@ -94,33 +85,123 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="add_node" max-width="500px">
+    <v-dialog v-model="set_user_show" max-width="500px">
       <v-card>
-        <v-card-title> 新增节点 </v-card-title>
+        <v-card-title> 编辑用户 </v-card-title>
         <v-card-text>
           <v-form ref="form" lazy-validation>
             <v-container fluid>
               <v-row>
+                <v-col cols="12" sm="4">
+                  <v-text-field
+                    v-model="quota"
+                    label="流量限制"
+                    hint="-1为无限制"
+                    type="number"
+                    min="-1"
+                    suffix="MB"
+                    >-1</v-text-field
+                  >
+                </v-col>
+                <v-col cols="12" sm="8">
+                  <v-menu
+                    v-model="date_menu"
+                    :close-on-content-click="false"
+                    :nudge-right="40"
+                    transition="scale-transition"
+                    offset-y
+                    min-width="auto"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
+                        v-model="date"
+                        label="到期时间"
+                        prepend-icon="mdi-calendar"
+                        readonly
+                        v-bind="attrs"
+                        v-on="on"
+                        clearable
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
+                      v-model="date"
+                      :min="date_min"
+                      locale="zh-cn"
+                    ></v-date-picker>
+                  </v-menu>
+                </v-col>
+              </v-row>
+              <!-- </v-container> -->
+              <v-row>
                 <v-col cols="12" sm="12">
-                  <v-combobox
-                    v-model="select"
-                    :items="items"
-                    label="选择节点"
-                    multiple
-                    chips
-                  ></v-combobox>
+                  用户节点
+                  <v-chip-group column>
+                    <span v-for="node in current_nodes" :key="node.id">
+                      <v-chip color="primary" @click="remove_user_nodes(node)">
+                        {{ node }}
+                      </v-chip>
+                    </span>
+                  </v-chip-group>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="12">
+                  可用节点
+                  <v-chip-group column>
+                    <span v-for="node in available_nodes" :key="node.id">
+                      <v-chip @click="add_user_nodes(node)">
+                        {{ node }}
+                      </v-chip>
+                    </span>
+                  </v-chip-group>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="6">
+                  <v-btn color="success" class="mr-4" @click="send_set_user">
+                    提交
+                  </v-btn>
+                  <v-btn class="mr-4" @click="set_user_show = false">
+                    取消
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-form>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="del_user_show" max-width="500px">
+      <v-card>
+        <v-card-title> 删除用户 </v-card-title>
+        <v-card-text>
+          <v-form ref="form" v-model="valid" lazy-validation>
+            <v-container fluid>
+              <v-row>
+                <v-col cols="12" sm="12">
+                  <v-alert dense outlined type="error">
+                    是否删除用户"{{ current_user }}"? 该操作不可逆
+                  </v-alert>
+
+                  <v-text-field
+                    label="输入用户名"
+                    :rules="[rules.del_user]"
+                  ></v-text-field>
                 </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12" sm="12">
                   <v-btn
-                    color="success"
+                    color="error"
+                    :disabled="!valid"
                     class="mr-4"
-                    @click="send_add_node_to_user"
+                    @click="send_del_user"
                   >
-                    确定
+                    确定删除
                   </v-btn>
-                  <v-btn class="mr-4" @click="add_node = false"> 取消 </v-btn>
+                  <v-btn class="mr-4" @click="del_user_show = false">
+                    取消
+                  </v-btn>
                 </v-col>
               </v-row>
             </v-container>
@@ -132,7 +213,19 @@
 </template>
 
 <script>
-import { userRegister, getAllUser, addNodeToUser } from "@/utils/api";
+Array.prototype.indexOf = function (val) {
+  for (var i = 0; i < this.length; i++) {
+    if (this[i] == val) return i;
+  }
+  return -1;
+};
+Array.prototype.remove = function (val) {
+  var index = this.indexOf(val);
+  if (index > -1) {
+    this.splice(index, 1);
+  }
+};
+import { userRegister, getAllUser, setUser, delUser } from "@/utils/api";
 
 export default {
   data() {
@@ -140,12 +233,29 @@ export default {
       search: "",
       username: "",
       password: "",
-      add_node_user: "",
-      add_node: false,
+      valid: false,
+      loadingdata: true,  // 加载用户数据
+      set_user_show: false, // 修改用户
+      del_user_show: false, // 删除用户
       showpwd: false,
       add_user: false,
-      select: [],
-      items: [],
+      date_menu: false, // 时间选择器是否显示
+      date_min: new Date(
+        Date.now() -
+          new Date().getTimezoneOffset() * 60000 +
+          24 * 60 * 60 * 1000
+      )
+        .toISOString()
+        .substr(0, 10),
+      date: "",
+      quota: -1,
+      current_user: "", // 当前用户
+      all_nodes: [], // 所有节点
+      current_nodes: [], // 当前节点
+      available_nodes: [], // 可用节点
+      rules: {
+        del_user: (value) => value == this.current_user,
+      },
       headers: [
         {
           text: "用户",
@@ -158,6 +268,7 @@ export default {
         { text: "总流量", value: "total" },
         { text: "流量限制", value: "quota" },
         { text: "到期时间", value: "expiry_date" },
+        { text: "操作", value: "actions", sortable: false },
       ],
       desserts: [],
     };
@@ -166,11 +277,60 @@ export default {
     this.get_user();
   },
   methods: {
+    set_user(user) {
+      this.current_user = user.username;
+      this.current_nodes = user.nodes;
+      if (user.expiry_date != "永久") {
+        this.date = user.expiry_date;
+      }
+      if (user.quota == "无限制") {
+        this.quota = -1;
+      } else {
+        this.quota = user.quota;
+      }
+      this.available_nodes = this.all_nodes.filter(function (v) {
+        return user.nodes.indexOf(v) == -1;
+      });
+    },
+    del_user(user) {
+      this.current_user = user.username;
+    },
+    async send_del_user() {
+      if (this.$refs.form.validate()) {
+        var userdata = {
+          username: this.current_user,
+        };
+        await delUser(userdata).then((res) => {
+          this.add_code = res["code"];
+          this.add_msg = res["data"];
+        });
+        this.del_user_show = false;
+        this.get_user();
+      }
+    },
+    async send_set_user() {
+      var userdata = {
+        username: this.current_user,
+        node_list: this.current_nodes,
+        user_data: {
+          quota: this.quota,
+          expiry_date: this.date,
+        },
+      };
+      await setUser(userdata).then((res) => {
+        this.add_code = res["code"];
+        this.add_msg = res["data"];
+      });
+      this.set_user_show = false;
+      this.get_user();
+    },
     async get_user() {
+      this.loadingdata = true
       await getAllUser().then((res) => {
         this.desserts = res["data"]["user_list"];
-        this.items = res["data"]["node_list"];
+        this.all_nodes = res["data"]["node_list"];
       });
+      this.loadingdata = false
     },
     async register() {
       var userdata = {
@@ -181,28 +341,16 @@ export default {
         this.add_code = res["code"];
         this.add_msg = res["data"];
       });
-      console.log(this.add_code, this.add_msg);
       this.add_user = false;
       this.get_user();
     },
-    add_node_to_user(username) {
-      this.add_node_user = username;
-      console.log(this.add_node_user);
+    add_user_nodes(node) {
+      this.available_nodes.remove(node);
+      this.current_nodes.push(node);
     },
-    async send_add_node_to_user() {
-      var send_data = {
-        username: this.add_node_user,
-        node_list: this.select,
-      };
-      await addNodeToUser(send_data).then((res) => {
-        this.add_code = res["code"];
-        this.add_msg = res["data"];
-      });
-      this.add_node = false;
-      this.get_user()
-    },
-    remove_node(username, node) {
-      console.log(username, node);
+    remove_user_nodes(node) {
+      this.current_nodes.remove(node);
+      this.available_nodes.push(node);
     },
   },
 };
