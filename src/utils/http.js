@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-axios.defaults.timeout = 5000
+axios.defaults.timeout = 20000
 axios.defaults.baseURL = 'http://127.0.0.1:8000'
 
 axios.interceptors.request.use(

@@ -12,4 +12,8 @@ export const setUser = data => post('/user/set_user', data)
 
 export const delUser = data => post('/user/del_user', data)
 
+export const subscribe = data => post('/user/subscribe', data)
+
 export const getAllUser = data => get('/user/get_all_user', data)
+
+export const getTrojanUrl = data => get('/user/get_trojan_url', data)

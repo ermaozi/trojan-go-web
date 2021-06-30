@@ -23,26 +23,58 @@
       :search="search"
     >
       <template v-slot:item.actions="{ item }">
-        <v-icon
-          small
-          class="mr-2"
-          @click="
-            set_user_show = true;
-            set_user(item);
-          "
-        >
-          mdi-pencil
-        </v-icon>
-        <v-icon
-          small
-          @click="
-            del_user(item);
-            del_user_show = true;
-            valid = true;
-          "
-        >
-          mdi-delete
-        </v-icon>
+        <v-tooltip top color="primary">
+          <template v-slot:activator="{ on, attrs }">
+            <v-icon
+              v-bind="attrs"
+              v-on="on"
+              small
+              class="mr-2"
+              @click="
+                set_user_show = true;
+                set_user(item);
+              "
+            >
+              mdi-pencil
+            </v-icon>
+          </template>
+          <span>编辑用户</span>
+        </v-tooltip>
+        <v-tooltip top color="primary">
+          <template v-slot:activator="{ on, attrs }">
+            <v-icon
+              v-bind="attrs"
+              v-on="on"
+              small
+              class="mr-2"
+              @click="
+                get_trojan(item);
+                trojan_show = true;
+              "
+            >
+              mdi-eye
+            </v-icon>
+          </template>
+          <span>查看节点</span>
+        </v-tooltip>
+        <v-tooltip top color="error">
+          <template v-slot:activator="{ on, attrs }">
+            <v-icon
+              v-bind="attrs"
+              v-on="on"
+              small
+              class="mr-2"
+              @click="
+                del_user(item);
+                del_user_show = true;
+                valid = true;
+              "
+            >
+              mdi-delete
+            </v-icon>
+          </template>
+          <span>删除用户</span>
+        </v-tooltip>
       </template>
     </v-data-table>
     <v-dialog v-model="add_user" max-width="500px">
@@ -209,6 +241,44 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="trojan_show" max-width="600px">
+      <v-card :loading="trojan_url_loading">
+        <v-card-title> trojan 连接 </v-card-title>
+        <v-card-text>
+          <v-container fluid>
+            <v-row v-for="trojan in trojan_urls" :key="trojan.id">
+              <v-col cols="12" sm="12">
+                <span>{{ trojan }}</span>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-title> 订阅连接 </v-card-title>
+        <v-card-text>
+          <v-container fluid>
+            <v-row>
+              <v-col cols="12" sm="12">
+               {{ subscribe_link}}
+              </v-col>
+            </v-row>
+            <v-row v-if="!trojan_url_loading">
+              <v-col>
+                <span v-if="subscribe_link">
+                  <v-btn @click="update_subscribe_link">
+                    重置订阅链接
+                  </v-btn>
+                </span>
+                <span v-else>
+                  <v-btn @click="update_subscribe_link">
+                    创建订阅链接
+                  </v-btn>
+                </span>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -225,7 +295,14 @@ Array.prototype.remove = function (val) {
     this.splice(index, 1);
   }
 };
-import { userRegister, getAllUser, setUser, delUser } from "@/utils/api";
+import {
+  userRegister,
+  getAllUser,
+  setUser,
+  delUser,
+  getTrojanUrl,
+  subscribe,
+} from "@/utils/api";
 
 export default {
   data() {
@@ -234,9 +311,11 @@ export default {
       username: "",
       password: "",
       valid: false,
-      loadingdata: true,  // 加载用户数据
+      loadingdata: true, // 加载用户数据
+      trojan_url_loading: true,
       set_user_show: false, // 修改用户
       del_user_show: false, // 删除用户
+      trojan_show: false,
       showpwd: false,
       add_user: false,
       date_menu: false, // 时间选择器是否显示
@@ -253,6 +332,8 @@ export default {
       all_nodes: [], // 所有节点
       current_nodes: [], // 当前节点
       available_nodes: [], // 可用节点
+      trojan_urls: [],
+      subscribe_link: "",
       rules: {
         del_user: (value) => value == this.current_user,
       },
@@ -325,12 +406,12 @@ export default {
       this.get_user();
     },
     async get_user() {
-      this.loadingdata = true
+      this.loadingdata = true;
       await getAllUser().then((res) => {
         this.desserts = res["data"]["user_list"];
         this.all_nodes = res["data"]["node_list"];
       });
-      this.loadingdata = false
+      this.loadingdata = false;
     },
     async register() {
       var userdata = {
@@ -351,6 +432,25 @@ export default {
     remove_user_nodes(node) {
       this.current_nodes.remove(node);
       this.available_nodes.push(node);
+    },
+    async get_trojan(user) {
+      this.trojan_url_loading = true
+      this.current_user = user.username;
+      await getTrojanUrl(user.username).then((res) => {
+        this.trojan_urls = res["data"]["trojan_urls"];
+        this.subscribe_link = res["data"]["subscribe_link"];
+      });
+      this.trojan_url_loading = false
+    },
+    async update_subscribe_link() {
+      var userdata = {
+        username: this.current_user,
+      };
+      await subscribe(userdata).then((res) => {
+        this.add_code = res["code"];
+        this.add_msg = res["data"];
+      });
+      this.get_trojan({ username: this.current_user });
     },
   },
 };
