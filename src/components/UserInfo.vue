@@ -438,7 +438,7 @@ export default {
       this.current_user = user.username;
       await getTrojanUrl(user.username).then((res) => {
         this.trojan_urls = res["data"]["trojan_urls"];
-        this.subscribe_link = res["data"]["subscribe_link"];
+        this.subscribe_link = window.gurl.SERVICE_CONTEXT_PATH+res["data"]["subscribe_link"];
       });
       this.trojan_url_loading = false
     },
