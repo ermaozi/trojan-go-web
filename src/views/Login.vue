@@ -95,7 +95,7 @@ export default {
           this.alert = true;
           this.alertType = "success";
           this.alertMsg = "登录成功!";
-          location.reload();
+          this.$router.push("/");
         }
       });
     },
