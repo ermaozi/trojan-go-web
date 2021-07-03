@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-dialog v-model="overlay" max-width="500px">
+    <v-dialog v-model="add_node_dialog" max-width="500px">
       <v-card width="500px" flat class="pa-10">
         <v-card-title>
           添加节点
@@ -55,7 +55,7 @@
                   添加
                 </v-btn>
 
-                <v-btn class="mr-4" @click="overlay = !overlay"> 取消 </v-btn>
+                <v-btn class="mr-4" @click="add_node_dialog = !add_node_dialog"> 取消 </v-btn>
               </v-col>
             </v-row>
           </v-container>
@@ -72,15 +72,11 @@
     ></v-progress-linear>
     <v-row v-show="!loading">
       <v-col cols="20" md="4">
-        <v-btn color="success" @click="overlay = !overlay"> 添加节点 </v-btn>
-        <v-btn color="blue-grey" class="ma-3" @click="get_info">
-          刷新
-          <v-progress-circular
-            v-show="refresh"
-            indeterminate
-            color="white"
-            :size="20"
-          ></v-progress-circular>
+        <v-btn color="success" @click="add_node_dialog = !add_node_dialog">
+          <v-icon>mdi-plus-circle-multiple-outline</v-icon>
+        </v-btn>
+        <v-btn color="blue-grey" :loading="refresh" class="ma-3" @click="refresh=true;get_info()">
+          <v-icon>mdi-refresh</v-icon>
         </v-btn>
       </v-col>
     </v-row>
@@ -175,7 +171,7 @@ import { getNodeStatus, getNodeInfo, addNode } from "@/utils/api";
 export default {
   data: () => ({
     loading: true,
-    overlay: false,
+    add_node_dialog: false,
     refresh: false,
     showpwd: false,
     password: "",
@@ -196,7 +192,6 @@ export default {
   },
   methods: {
     async get_info() {
-      this.refresh = true;
       await getNodeInfo().then((res) => {
         this.node_info = res["data"]["node_list"];
         this.domain_list = res["data"]["domain_list"];
@@ -220,6 +215,8 @@ export default {
         this.add_code = res["code"]
         this.add_msg = res["data"]
       });
+      this.get_info();
+      this.add_node_dialog = false;
       console.log(this.add_code, this.add_msg);
     },
   },

@@ -11,7 +11,7 @@
       <v-spacer></v-spacer>
       <v-spacer></v-spacer>
       <v-btn color="success" class="ma-2" dark @click="add_user = true">
-        新增用户
+        <v-icon>mdi-account-plus</v-icon>
       </v-btn>
     </v-card-title>
     <v-data-table
@@ -35,7 +35,7 @@
                 set_user(item);
               "
             >
-              mdi-pencil
+              mdi-account-edit
             </v-icon>
           </template>
           <span>编辑用户</span>

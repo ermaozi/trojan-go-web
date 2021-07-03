@@ -1,5 +1,7 @@
 import { get, post } from './http'
 
+export const login = data => post('/user/login', data)
+
 export const getNodeStatus = data => get('/node/get_node_status', data)
 
 export const getNodeInfo = data => get('/node/get_node_info', data)
