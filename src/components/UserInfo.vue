@@ -404,11 +404,13 @@ export default {
       });
       this.set_user_show = false;
       this.get_user();
+      this.get_info();
     },
     async get_user() {
       this.loadingdata = true;
       await getAllUser().then((res) => {
         if(res.code==401){
+          localStorage.token = ""
           this.$router.push("/login");
         }
         this.desserts = res["data"]["user_list"];

@@ -2,9 +2,7 @@
   <v-container>
     <v-dialog v-model="add_node_dialog" max-width="500px">
       <v-card width="500px" flat class="pa-10">
-        <v-card-title>
-          添加节点
-        </v-card-title>
+        <v-card-title> 添加节点 </v-card-title>
         <v-form ref="form" lazy-validation>
           <v-container fluid>
             <v-row>
@@ -55,7 +53,9 @@
                   添加
                 </v-btn>
 
-                <v-btn class="mr-4" @click="add_node_dialog = !add_node_dialog"> 取消 </v-btn>
+                <v-btn class="mr-4" @click="add_node_dialog = !add_node_dialog">
+                  取消
+                </v-btn>
               </v-col>
             </v-row>
           </v-container>
@@ -75,7 +75,15 @@
         <v-btn color="success" @click="add_node_dialog = !add_node_dialog">
           <v-icon>mdi-plus-circle-multiple-outline</v-icon>
         </v-btn>
-        <v-btn color="blue-grey" :loading="refresh" class="ma-3" @click="refresh=true;get_info()">
+        <v-btn
+          color="blue-grey"
+          :loading="refresh"
+          class="ma-3"
+          @click="
+            refresh = true;
+            get_info();
+          "
+        >
           <v-icon>mdi-refresh</v-icon>
         </v-btn>
       </v-col>
@@ -87,18 +95,34 @@
         <v-card elevation="0" class="mx-auto">
           <v-card-title>
             <span class="text-h5">{{ n.node_name }}</span>
+
             <span class="mt-2 ps-3 blue-grey--text text-caption">
               ↑ {{ node_status[n.node_domain]["up_speed"] }}/s | ↓
               {{ node_status[n.node_domain]["down_speed"] }}/s
             </span>
             <v-row align="center" justify="end">
-              <v-btn
-                class="ma-3"
-                x-small
-                :color="node_status[n.node_domain].node_status.status"
-              >
-                {{ node_status[n.node_domain].node_status.info }}
-              </v-btn>
+              <v-tooltip top>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-chip v-bind="attrs" v-on="on" class="mt-1" x-small>
+                    {{ n.node_usernumber }}
+                  </v-chip>
+                </template>
+                <span>用户数量</span>
+              </v-tooltip>
+              <v-tooltip top>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    class="ma-3"
+                    x-small
+                    v-bind="attrs"
+                    v-on="on"
+                    :color="node_status[n.node_domain].node_status.status"
+                  >
+                    {{ node_status[n.node_domain].node_status.info }}
+                  </v-btn>
+                </template>
+                <span>{{ node_status[n.node_domain].node_status.msg }}</span>
+              </v-tooltip>
             </v-row>
           </v-card-title>
           <v-divider></v-divider>
@@ -200,20 +224,20 @@ export default {
       this.refresh = false;
     },
     async get_status() {
-          await getNodeStatus(this.domain_list).then((res) => {
-          this.node_status = res["data"];
-          this.loading = false;
-        })
+      await getNodeStatus(this.node_info).then((res) => {
+        this.node_status = res["data"];
+        this.loading = false;
+      });
     },
     async add_node() {
       var nodedata = {
-        "node_name": this.nodename,
-        "node_domain": this.domain,
-        "node_region": this.region
-      }
+        node_name: this.nodename,
+        node_domain: this.domain,
+        node_region: this.region,
+      };
       await addNode(nodedata).then((res) => {
-        this.add_code = res["code"]
-        this.add_msg = res["data"]
+        this.add_code = res["code"];
+        this.add_msg = res["data"];
       });
       this.get_info();
       this.add_node_dialog = false;
