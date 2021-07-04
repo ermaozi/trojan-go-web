@@ -408,6 +408,9 @@ export default {
     async get_user() {
       this.loadingdata = true;
       await getAllUser().then((res) => {
+        if(res.code==401){
+          this.$router.push("/login");
+        }
         this.desserts = res["data"]["user_list"];
         this.all_nodes = res["data"]["node_list"];
       });

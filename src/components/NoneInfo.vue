@@ -188,7 +188,7 @@ export default {
       setTimeout(() => {
         this.get_status();
       }, 0);
-    }, 6000);
+    }, 5000);
   },
   methods: {
     async get_info() {
