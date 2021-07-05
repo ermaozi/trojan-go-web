@@ -82,10 +82,10 @@ export default {
         this.add_code = res["code"];
         this.add_msg = res["data"];
       });
-      this.$router.push("/login");
+      this.$router.push("/user/login");
     },
     cancel() {
-      this.$router.push("/login");
+      this.$router.push("/user/login");
     },
   },
 };

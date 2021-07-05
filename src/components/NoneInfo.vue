@@ -241,7 +241,6 @@ export default {
       });
       this.get_info();
       this.add_node_dialog = false;
-      console.log(this.add_code, this.add_msg);
     },
   },
 };
