@@ -51,7 +51,7 @@ export default {
         this.alertType = "warning";
         this.alertMsg = "账号未登录, 前往登录页面..";
         setTimeout(() =>{
-          this.$router.push("/user/login");
+          this.$router.push("/login");
         },1000);
       }
     }

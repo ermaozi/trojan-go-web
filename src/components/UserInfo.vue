@@ -131,7 +131,7 @@
                     hint="-1为无限制"
                     type="number"
                     min="-1"
-                    suffix="MB"
+                    suffix="GB"
                     >-1</v-text-field
                   >
                 </v-col>
