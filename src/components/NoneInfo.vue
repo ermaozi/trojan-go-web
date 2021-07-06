@@ -1,10 +1,36 @@
 <template>
   <v-container>
+    <v-dialog v-model="worknode_cmd" max-width="500px">
+      <v-card width="1000px" flat class="pa-10">
+          <v-card-title> 请在子节点执行以下命令 </v-card-title>
+          <v-card-text>
+            {{ add_msg }}
+          </v-card-text>
+      </v-card>
+    </v-dialog>
     <v-dialog v-model="add_node_dialog" max-width="500px">
       <v-card width="500px" flat class="pa-10">
         <v-card-title> 添加节点 </v-card-title>
         <v-form ref="form" lazy-validation>
           <v-container fluid>
+            <v-row>
+              <v-col cols="12" sm="12">
+                <v-text-field
+                  v-model="nodename"
+                  label="节点名称"
+                  persistent-hint
+                ></v-text-field>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="12">
+                <v-text-field
+                  v-model="node_remarks"
+                  label="备注"
+                  persistent-hint
+                ></v-text-field>
+              </v-col>
+            </v-row>
             <v-row>
               <v-col cols="12" sm="12">
                 <v-text-field
@@ -23,15 +49,6 @@
                   :type="showpwd ? 'text' : 'password'"
                   label="密码"
                   @click:append="showpwd = !showpwd"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" sm="12">
-                <v-text-field
-                  v-model="nodename"
-                  label="节点名称"
-                  persistent-hint
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -198,9 +215,11 @@ export default {
     add_node_dialog: false,
     refresh: false,
     showpwd: false,
+    worknode_cmd: false,
     password: "",
     domain: "",
     nodename: "",
+    node_remarks: "",
     region: "",
     node_info: [],
     domain_list: [],
@@ -234,10 +253,14 @@ export default {
         node_name: this.nodename,
         node_domain: this.domain,
         node_region: this.region,
+        node_remarks: this.node_remarks
       };
       await addNode(nodedata).then((res) => {
         this.add_code = res["code"];
         this.add_msg = res["data"];
+        if (this.add_code == 200){
+          this.worknode_cmd = true;
+        }
       });
       this.get_info();
       this.add_node_dialog = false;

@@ -85,9 +85,11 @@ export default {
       reqData.password = this.password;
       await login(reqData).then((res) => {
         if (res.code !== 200) {
+          this.alert = false;
           this.alert = true;
+          console.log( res.message)
           this.alertType = "warning";
-          this.alertMsg = "登陆失败: 账号密码错误";
+          this.alertMsg = res.message;
         } else {
           this.datas = res.data;
           localStorage.setItem("token", this.datas.token);

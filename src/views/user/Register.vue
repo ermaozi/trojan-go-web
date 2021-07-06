@@ -20,6 +20,12 @@
             persistent-hint
           ></v-text-field>
           <v-text-field
+            v-model="usermail"
+            :rules="[rules.required]"
+            label="邮箱"
+            persistent-hint
+          ></v-text-field>
+          <v-text-field
             v-model="password"
             :rules="[
               rules.required,
@@ -65,6 +71,7 @@ export default {
       alert: false,
       show: false,
       username: "",
+      usermail: "",
       password: "",
       rules: {
         required: (value) => !!value || "不可为空",
@@ -76,13 +83,26 @@ export default {
     async register() {
       var userdata = {
         username: this.username,
+        usermail: this.usermail,
         password: this.password,
       };
       await userRegister(userdata).then((res) => {
-        this.add_code = res["code"];
-        this.add_msg = res["data"];
+        if (res.code !== 200) {
+          this.alert = false;
+          this.alert = true;
+          console.log( res.message)
+          this.alertType = "warning";
+          this.alertMsg = res.message;
+        } else {
+          this.datas = res.data;
+          localStorage.setItem("token", this.datas.token);
+          localStorage.setItem("username", this.datas.username);
+          this.alert = true;
+          this.alertType = "success";
+          this.alertMsg = "注册成功!";
+          this.$router.push("/login");
+        }
       });
-      this.$router.push("/login");
     },
     cancel() {
       this.$router.push("/login");
