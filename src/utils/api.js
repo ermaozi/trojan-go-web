@@ -1,6 +1,6 @@
 import { get, post, put, del } from './http'
 
-export const login = data => post('/user/login', data)
+export const login = data => post('/login', data)
 
 export const getNodeStatus = data => post('/node/get_node_status', data)
 
