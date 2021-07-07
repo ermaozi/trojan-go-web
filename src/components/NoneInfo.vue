@@ -2,10 +2,43 @@
   <v-container>
     <v-dialog v-model="worknode_cmd" max-width="500px">
       <v-card width="1000px" flat class="pa-10">
-          <v-card-title> 请在子节点执行以下命令 </v-card-title>
-          <v-card-text>
-            {{ add_msg }}
-          </v-card-text>
+        <v-card-title> 请在子节点执行以下命令 </v-card-title>
+        <v-card-text>
+          {{ add_msg }}
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="del_node_show" max-width="500px">
+      <v-card>
+        <v-card-title> 删除节点 </v-card-title>
+        <v-card-text>
+          <v-form ref="form" v-model="valid" lazy-validation>
+            <v-container fluid>
+              <v-row>
+                <v-col cols="12" sm="12">
+                  <v-alert dense outlined type="error">
+                    是否删除节点"{{ current_node }}"? 该操作不可逆
+                  </v-alert>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="12">
+                  <v-btn
+                    color="error"
+                    :disabled="!valid"
+                    class="mr-4"
+                    @click="send_del_node"
+                  >
+                    确定删除
+                  </v-btn>
+                  <v-btn class="mr-4" @click="del_node_show = false">
+                    取消
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-form>
+        </v-card-text>
       </v-card>
     </v-dialog>
     <v-dialog v-model="add_node_dialog" max-width="500px">
@@ -199,6 +232,16 @@
           <v-card-actions>
             <v-list-item class="grow">
               <a class="ma-n1">{{ n.node_domain }} | {{ n.node_region }}</a>
+              <v-spacer></v-spacer>
+              <v-btn
+                color="error"
+                plain
+                @click="
+                  del_node_show = true;
+                  del_node(n.node_name);
+                ">
+                删除
+              </v-btn>
             </v-list-item>
           </v-card-actions>
         </v-card>
@@ -208,18 +251,22 @@
 </template>
 
 <script>
-import { getNodeStatus, getNodeInfo, addNode } from "@/utils/api";
+import { getNodeStatus, getNodeInfo, addNode, delNode } from "@/utils/api";
 export default {
   data: () => ({
     loading: true,
+    del_node_show: false,
     add_node_dialog: false,
     refresh: false,
     showpwd: false,
     worknode_cmd: false,
+    valid: false,
+    add_msg: "",
     password: "",
     domain: "",
     nodename: "",
     node_remarks: "",
+    current_node: "",
     region: "",
     node_info: [],
     domain_list: [],
@@ -253,17 +300,32 @@ export default {
         node_name: this.nodename,
         node_domain: this.domain,
         node_region: this.region,
-        node_remarks: this.node_remarks
+        node_remarks: this.node_remarks,
       };
       await addNode(nodedata).then((res) => {
         this.add_code = res["code"];
         this.add_msg = res["data"];
-        if (this.add_code == 200){
+        if (this.add_code == 200) {
           this.worknode_cmd = true;
         }
       });
       this.get_info();
       this.add_node_dialog = false;
+    },
+    del_node(node_name) {
+      console.log(node_name);
+      this.current_node = node_name;
+    },
+    async send_del_node() {
+      console.log(this.current_node);
+      var nodedata = {
+        node_name: this.current_node,
+      };
+      await delNode(nodedata).then((res) => {
+        console.log(res);
+      });
+      this.del_node_show = false;
+      this.get_info()
     },
   },
 };
