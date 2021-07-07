@@ -1,5 +1,10 @@
 <template>
   <v-container>
+    <v-dialog v-model="alert" width="500">
+      <v-alert :type="alertType">
+        {{ alertMsg }}
+      </v-alert>
+    </v-dialog>
     <v-dialog v-model="worknode_cmd" max-width="500px">
       <v-card width="1000px" flat class="pa-10">
         <v-card-title> 请在子节点执行以下命令 </v-card-title>
@@ -239,7 +244,8 @@
                 @click="
                   del_node_show = true;
                   del_node(n.node_name);
-                ">
+                "
+              >
                 删除
               </v-btn>
             </v-list-item>
@@ -261,6 +267,9 @@ export default {
     showpwd: false,
     worknode_cmd: false,
     valid: false,
+    alert: false,
+    alertMsg: "",
+    alertType: "",
     add_msg: "",
     password: "",
     domain: "",
@@ -306,7 +315,15 @@ export default {
         this.add_code = res["code"];
         this.add_msg = res["data"];
         if (this.add_code == 200) {
+          this.alertType = "success";
+          this.alertMsg = "添加成功!";
+          this.alert = true;
           this.worknode_cmd = true;
+        } else {
+          this.alertType = "error";
+          console.log(this.add_msg);
+          this.alertMsg = this.add_msg;
+          this.alert = true;
         }
       });
       this.get_info();
@@ -325,7 +342,7 @@ export default {
         console.log(res);
       });
       this.del_node_show = false;
-      this.get_info()
+      this.get_info();
     },
   },
 };

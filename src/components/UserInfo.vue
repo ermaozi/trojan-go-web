@@ -1,5 +1,10 @@
 <template>
   <v-card elevation="0" class="ma-16">
+    <v-dialog v-model="alert" width="500">
+      <v-alert :type="alertType">
+        {{ alertMsg }}
+      </v-alert>
+    </v-dialog>
     <v-card-title>
       <v-text-field
         v-model="search"
@@ -258,20 +263,16 @@
           <v-container fluid>
             <v-row>
               <v-col cols="12" sm="12">
-               {{ subscribe_link}}
+                {{ subscribe_link }}
               </v-col>
             </v-row>
             <v-row v-if="!trojan_url_loading">
               <v-col>
                 <span v-if="subscribe_link">
-                  <v-btn @click="update_subscribe_link">
-                    重置订阅链接
-                  </v-btn>
+                  <v-btn @click="update_subscribe_link"> 重置订阅链接 </v-btn>
                 </span>
                 <span v-else>
-                  <v-btn @click="update_subscribe_link">
-                    创建订阅链接
-                  </v-btn>
+                  <v-btn @click="update_subscribe_link"> 创建订阅链接 </v-btn>
                 </span>
               </v-col>
             </v-row>
@@ -310,6 +311,9 @@ export default {
       search: "",
       username: "",
       password: "",
+      alertMsg: "",
+      alertType: "",
+      alert: false,
       valid: false,
       loadingdata: true, // 加载用户数据
       trojan_url_loading: true,
@@ -384,6 +388,17 @@ export default {
         await delUser(userdata).then((res) => {
           this.add_code = res["code"];
           this.add_msg = res["data"];
+          if (this.add_code == 200) {
+            this.alertType = "success";
+            this.alertMsg = "删除成功!";
+            this.alert = true;
+            this.worknode_cmd = true;
+          } else {
+            this.alertType = "error";
+            console.log(this.add_msg);
+            this.alertMsg = this.add_msg;
+            this.alert = true;
+          }
         });
         this.del_user_show = false;
         this.get_user();
@@ -409,8 +424,8 @@ export default {
     async get_user() {
       this.loadingdata = true;
       await getAllUser().then((res) => {
-        if(res.code==401){
-          localStorage.token = ""
+        if (res.code == 401) {
+          localStorage.token = "";
           this.$router.push("/login");
         }
         this.desserts = res["data"]["user_list"];
@@ -426,6 +441,17 @@ export default {
       await userRegister(userdata).then((res) => {
         this.add_code = res["code"];
         this.add_msg = res["data"];
+        if (this.add_code == 200) {
+          this.alertType = "success";
+          this.alertMsg = "添加成功!";
+          this.alert = true;
+          this.worknode_cmd = true;
+        } else {
+          this.alertType = "error";
+          console.log(this.add_msg);
+          this.alertMsg = this.add_msg;
+          this.alert = true;
+        }
       });
       this.add_user = false;
       this.get_user();
@@ -439,13 +465,14 @@ export default {
       this.available_nodes.push(node);
     },
     async get_trojan(user) {
-      this.trojan_url_loading = true
+      this.trojan_url_loading = true;
       this.current_user = user.username;
       await getTrojanUrl(user.username).then((res) => {
         this.trojan_urls = res["data"]["trojan_urls"];
-        this.subscribe_link = window.gurl.SERVICE_CONTEXT_PATH+res["data"]["subscribe_link"];
+        this.subscribe_link =
+          window.gurl.SERVICE_CONTEXT_PATH + res["data"]["subscribe_link"];
       });
-      this.trojan_url_loading = false
+      this.trojan_url_loading = false;
     },
     async update_subscribe_link() {
       var userdata = {
