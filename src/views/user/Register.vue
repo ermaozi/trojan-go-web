@@ -90,9 +90,9 @@ export default {
         if (res.code !== 200) {
           this.alert = false;
           this.alert = true;
-          console.log( res.message)
+          console.log( res.data)
           this.alertType = "warning";
-          this.alertMsg = res.message;
+          this.alertMsg = res.data;
         } else {
           this.datas = res.data;
           localStorage.setItem("token", this.datas.token);
