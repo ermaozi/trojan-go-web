@@ -246,9 +246,9 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="trojan_show" max-width="600px">
+    <v-dialog v-model="trojan_show" max-width="700px">
       <v-card :loading="trojan_url_loading">
-        <v-card-title> trojan 连接 </v-card-title>
+        <v-card-title> trojan 链接 </v-card-title>
         <v-card-text>
           <v-container fluid>
             <v-row v-for="trojan in trojan_urls" :key="trojan.id">
@@ -258,12 +258,15 @@
             </v-row>
           </v-container>
         </v-card-text>
-        <v-card-title> 订阅连接 </v-card-title>
+        <v-card-title> 订阅链接 </v-card-title>
         <v-card-text>
           <v-container fluid>
             <v-row>
               <v-col cols="12" sm="12">
-                {{ subscribe_link }}
+                普通订阅：{{ subscribe_link }}
+              </v-col>
+              <v-col cols="12" sm="12">
+                clash 订阅：{{ subscribe_link+"&t=clash" }}
               </v-col>
             </v-row>
             <v-row v-if="!trojan_url_loading">
